@@ -12,6 +12,7 @@ class Clothe(Base):
     size = Column(String(25))
     color = Column(String(25), nullable=True)
     img_url = Column(String(500))
+    condition = Column(String(25), nullable=True)
     brand = Column(String(25), nullable=True)
     price = Column(Float)
     available = Column(Boolean, default=True, nullable=True)
