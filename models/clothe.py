@@ -5,18 +5,16 @@ from config.db import engine
 
 Base = declarative_base()
 
-
 class Clothe(Base):
     __tablename__ = "clothes"
     id = (Column(Integer, primary_key=True))
-    tipo = (Column(String(250)))
-    talla = (Column(String(250)))
-    color = (Column(String(250)))
-    material = (Column(String(250)))
-    marca = (Column(String(250)))
-    condicion = (Column(String(250)))
-    precio = (Column(Float))
-    disponible = Column(Boolean, default=True)
+    type = Column(String(25), nullable=True)
+    size = Column(String(25))
+    color = Column(String(25), nullable=True)
+    img_url = Column(String(500))
+    brand = Column(String(25), nullable=True)
+    price = Column(Float)
+    available = Column(Boolean, default=True, nullable=True)
 
 
 Base.metadata.create_all(engine)
