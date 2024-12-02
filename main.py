@@ -29,10 +29,23 @@ def check_connection():
 def home():
     return "hola mundo"
 
-@app.get("/clothes", tags=["clothes"])
+# @app.get("/clothes", tags=["clothes"])
+# def get_clothes():
+#     db_clothes = session.query(Clothe).all()
+#     return db_clothes
+
+
 def get_clothes():
-    db_clothes = session.query(Clothe).all()
-    return db_clothes
+    try:
+        # Your database query logic
+        db_clothes = session.query(Clothe).all()
+        return db_clothes
+    except Exception as e:
+        # Handle any exceptions here
+        session.rollback()
+        raise e
+    finally:
+        session.close()
 
 
 @app.get("/clothes/{id}", tags=["clothes"])
