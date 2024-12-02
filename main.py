@@ -35,17 +35,10 @@ def home():
 #     return db_clothes
 
 
+@app.get("/clothes", tags=["clothes"])
 def get_clothes():
-    try:
-        # Your database query logic
-        db_clothes = session.query(Clothe).all()
-        return db_clothes
-    except Exception as e:
-        # Handle any exceptions here
-        session.rollback()
-        raise e
-    finally:
-        session.close()
+    db_clothes = session.query(Clothe).all()
+    return db_clothes
 
 
 @app.get("/clothes/{id}", tags=["clothes"])
