@@ -1,7 +1,9 @@
-from fastapi import FastAPI, Body
+from fastapi import FastAPI, Body, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from config.db import session
+# from config.db import session
+from config.db import get_db
 from sqlalchemy import text
+from sqlalchemy.orm import Session
 from models.clothe import Clothe
 
 
@@ -15,13 +17,12 @@ app.add_middleware(
     allow_headers=["*"],  
 )
 
-
 app.title = "lolas back_end"
 
 @app.get("/check_connection")
-def check_connection():
-    with session:
-        result = session.execute(text("SELECT 1")).scalar()
+def check_connection(db: Session = Depends(get_db)):
+    with db:
+        result = db.execute(text("SELECT 1")).scalar()
         return {"connection": "successful" if result == 1 else "failed"}
 
 
@@ -29,34 +30,41 @@ def check_connection():
 def home():
     return "hola mundo"
 
-# @app.get("/clothes", tags=["clothes"])
-# def get_clothes():
-#     db_clothes = session.query(Clothe).all()
-#     return db_clothes
+# clothes
 
-
+# obtiene todas las prendas
 @app.get("/clothes", tags=["clothes"])
-def get_clothes():
-    db_clothes = session.query(Clothe).all()
+def get_clothes(db: Session = Depends(get_db)):
+    db_clothes = db.query(Clothe).all()
     return db_clothes
 
 
+# devulve los primeros 3
+@app.get("/clothes_first_three", tags=["clothes"])
+def get_clothes(db: Session = Depends(get_db)):
+    db_clothes = db.query(Clothe).limit(3).all()
+    return db_clothes
+
+
+# se busca una prenda por el id
 @app.get("/clothes/{id}", tags=["clothes"])
-def get_clothes_by_id(id: int):
-    db_clothe = session.query(Clothe).filter(Clothe.id == id).first()
+def get_clothes_by_id(id: int, db: Session = Depends(get_db)):
+    db_clothe = db.query(Clothe).filter(Clothe.id == id).first()
     print(db_clothe)
     return db_clothe
 
 
 # en esta se hacen busquedas con qerys
 @app.get("/clothes/", tags=["clothes"])
-def get_clothes_by_brand(brand: str):
-    db_clothes = session.query(Clothe).filter(Clothe.marca == brand).all()
+def get_clothes_by_brand(brand: str, db: Session = Depends(get_db)):
+    db_clothes = db.query(Clothe).filter(Clothe.marca == brand).all()
     return db_clothes
 
 
+# sube una prenda
 @app.post("/clothes", tags=["clothes"])
 def post_clothe(
+    db: Session = Depends(get_db),
     id: int = Body(),
     type: str = Body(),
     size: str = Body(),
@@ -77,10 +85,12 @@ def post_clothe(
         price=price,
         available=available,
     )
-    session.add(db_clothe)
-    session.commit()
+    db.add(db_clothe)
+    db.commit()
     return {"Clothe added": db_clothe}
 
+
+# actualiza una prenda por id
 @app.put("/clothes/{id}", tags=["clothes"])
 def put_clothe(
     id: int,
@@ -92,8 +102,9 @@ def put_clothe(
     condition: str = Body(),
     price: float = Body(),
     available: bool = Body(),
+    db: Session = Depends(get_db)
 ):
-    db_clothe = session.query(Clothe).filter(Clothe.id == id).first()
+    db_clothe = db.query(Clothe).filter(Clothe.id == id).first()
 
     if not db_clothe:
         return {"error": "Clothe not found"}
@@ -115,11 +126,12 @@ def put_clothe(
     if available is not None:
         db_clothe.available = available
 
-    session.commit()
-    session.refresh(db_clothe)
+    db.commit()
+    db.refresh(db_clothe)
     return db_clothe
 
 
+# actualiza la prenda por id con el patch
 # @app.patch("/clothes/{id}", tags=["clothes"])
 # def patch_clothe(
 #     # None como valor por defecto, indicando que el campo es opcional
@@ -132,9 +144,9 @@ def put_clothe(
 #     condition: str = Body(None),
 #     price: float = Body(None),
 #     available: bool = Body(None),
+#     db: Session = Depends(get_db),
 # ):
-#     db_clothe = session.query(Clothe).filter(Clothe.id == id).first()
-
+#     db_clothe = db.query(Clothe).filter(Clothe.id == id).first()
 #     # Solo actualizamos los campos que fueron enviados
 #     if type is not None:
 #         db_clothe.type = type
@@ -153,55 +165,58 @@ def put_clothe(
 #     if available is not None:
 #         db_clothe.available = available
 
-#     session.commit()
-#     session.refresh(db_clothe)
+#     db.commit()
+#     db.refresh(db_clothe)
 #     return db_clothe
 
 
-@app.patch("/clothes/{id}", tags=["clothes"])
-def patch_clothe(
-    id: int,
-    type: str = (None),
-    size: str = (None),
-    color: str = (None),
-    img_url: str = (None),
-    brand: str = (None),
-    condition: str = (None),
-    price: float = (None),
-    available: bool = (None),
-):
-    db_clothe = session.query(Clothe).filter(Clothe.id == id).first()
+# actualiza la prenda por id con el patch
+# @app.patch("/clothes/{id}", tags=["clothes"])
+# def patch_clothe(
+#     id: int,
+#     type: str = (None),
+#     size: str = (None),
+#     color: str = (None),
+#     img_url: str = (None),
+#     brand: str = (None),
+#     condition: str = (None),
+#     price: float = (None),
+#     available: bool = (None),
+#     db: Session = Depends(get_db),
+# ):
+#     db_clothe = db.query(Clothe).filter(Clothe.id == id).first()
     
-    print("kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk")
-    print(patch_clothe)
-    print(db_clothe)
+#     print("kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk")
+#     print(patch_clothe)
+#     print(db_clothe)
 
-    # Only update fields with values in the request body
-    if type:
-        db_clothe.type = type
-    if size:
-        db_clothe.size = size
-    if color:
-        db_clothe.color = color
-    if img_url:
-        db_clothe.img_url = img_url
-    if brand:
-        db_clothe.brand = brand
-    if condition:
-        db_clothe.condition = condition
-    if price:
-        db_clothe.price = price
-    if available:
-        db_clothe.available = available
+#     # Only update fields with values in the request body
+#     if type:
+#         db_clothe.type = type
+#     if size:
+#         db_clothe.size = size
+#     if color:
+#         db_clothe.color = color
+#     if img_url:
+#         db_clothe.img_url = img_url
+#     if brand:
+#         db_clothe.brand = brand
+#     if condition:
+#         db_clothe.condition = condition
+#     if price:
+#         db_clothe.price = price
+#     if available:
+#         db_clothe.available = available
     
-    session.commit()
-    session.refresh(db_clothe)
-    return db_clothe
+#     db.commit()
+#     db.refresh(db_clothe)
+#     return db_clothe
 
 
+# elimina una prenda por id
 @app.delete("/clothes/{id}", tags=["clothes"])
-def delete_clothe(id: int):
-    db_clothe = session.query(Clothe).filter(Clothe.id == id).first()
-    session.delete(db_clothe)
-    session.commit()
+def delete_clothe(id: int, db: Session = Depends(get_db)):
+    db_clothe = db.query(Clothe).filter(Clothe.id == id).first()
+    db.delete(db_clothe)
+    db.commit()
     return {"delete": "succesfuli"}

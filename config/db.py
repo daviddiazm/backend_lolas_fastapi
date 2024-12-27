@@ -35,3 +35,12 @@ url = URL.create(
 engine = create_engine(url)
 Session = sessionmaker(bind=engine)
 session = Session()
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
