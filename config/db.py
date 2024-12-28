@@ -19,8 +19,7 @@ url = URL.create(
     password=database_password,
     host=database_host,
     port=database_port,
-    database=database_name
-    
+    database=database_name    
 )
 
 # url = URL.create(
@@ -29,6 +28,15 @@ url = URL.create(
 #     password="",
 #     host="localhost",
 #     port=3306,
+#     database="lolas_db",
+# )
+
+# url = URL.create(
+#     drivername="postgresql+psycopg2",
+#     username="postgres",
+#     password="root",
+#     host="localhost",
+#     port=5432,
 #     database="lolas_db",
 # )
 

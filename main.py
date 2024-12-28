@@ -17,7 +17,7 @@ app.add_middleware(
     allow_headers=["*"],  
 )
 
-app.title = "lolas back_end"
+# app.title = "lolas back_end"
 
 @app.get("/check_connection")
 def check_connection(db: Session = Depends(get_db)):
